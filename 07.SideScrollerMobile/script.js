@@ -209,6 +209,12 @@ window.addEventListener('load', function(){
         context.fillText('Score: ' + score, 20, 50);
         context.fillStyle = 'greenyellow';
         context.fillText('Score: ' + score, 18, 48);
+        context.textAlign = 'right';
+        context.fillStyle = 'black';
+        context.fillText('☝️ jump / 👇 restart', canvas.width - 15, 50);
+        context.fillStyle = 'greenyellow';
+        context.fillText('☝️ jump / 👇 restart', canvas.width - 17, 48);
+
         if (gameOver) {
             context.font = '60px Helvetica';
             context.textAlign = 'center';

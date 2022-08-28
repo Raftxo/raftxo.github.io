@@ -27,9 +27,3 @@ body {
     left: 50%;
     transform: translate(-50%);
 }
-#helperText {
-    position: absolute;
-    font-size: 20px;
-    top: 10px;
-    left: 50%;
-}
