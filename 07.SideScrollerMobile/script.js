@@ -216,12 +216,14 @@ window.addEventListener('load', function(){
         context.fillText('☝️ jump / 👇 restart', canvas.width - 17, 48);
 
         if (gameOver) {
-            context.font = '60px Helvetica';
+            context.font = '60 px Helvetica';
             context.textAlign = 'center';
             context.fillStyle = 'black';
-            context.fillText('Game Over (press Space to restart)', canvas.width*.5, 210);
+            context.fillText('Game Over', canvas.width*.5, 180);
+            context.fillText('(spacebar or swipe down to restart)', canvas.width/2, 250)
             context.fillStyle = 'greenyellow';
-            context.fillText('Game Over (press Space to restart)', canvas.width*.5-2, 208);
+            context.fillText('Game Over', canvas.width*.5-2, 178);
+            context.fillText('(spacebar or swipe down to restart)', canvas.width/2, 248)
         }
     }
     function restartGame(){
