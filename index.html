@@ -1,57 +1,344 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raftxo on GitHub</title>
-    
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide&effect=neon|outline|emboss|shadow-multiple">
-    <style> 
-    body {
-            font-family: "Audiowide", sans-serif;
+    <title>The Silent Pulse — Índice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        h1 {
+
+        body {
+            background: #0a0a0a;
+            color: #e8e8e8;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Canvas para aristas flotantes */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* Contenedor principal */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 80px 40px;
+        }
+
+        /* Título principal */
+        header {
             text-align: center;
-            color: black;
+            margin-bottom: 60px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #333;
         }
-        ul {
-            margin: auto;
-            background-color: #f1f1f1;
-            list-style-type: none;
-            padding: 10px;
-            width: 80%;
+
+        h1 {
+            font-size: 11px;
+            font-weight: normal;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 10px;
         }
-        li {
-            color: rgb(255, 200, 200);
-          width: auto;
-          height: 50px;
-          background: rgba(255, 0, 0, 0.7);
-          margin: 5px;
-          transition: transform .25s cubic-bezier(.7,.98,.86,.98), box-shadow .25s cubic-bezier(.7,.98,.86,.98);
+
+        .subtitle {
+            font-size: 10px;
+            letter-spacing: 4px;
+            color: #555;
+            text-transform: uppercase;
         }
-        
-        li:hover {
-            transform: scale(1.03);
-              box-shadow: 0 9px 47px 11px rgba(51, 51, 51, 0.18);
-              background: rgba(255, 0, 0, 0.9);
+
+        /* Línea decorativa */
+        .divider {
+            border: none;
+            border-top: 1px solid #333;
+            margin: 40px 0;
         }
-        a{
-            color: white;
+
+        /* Lista de entradas */
+        .index-list {
+            list-style: none;
         }
-        </style>
+
+        .index-item {
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .entry-line {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .entry-main {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            flex: 1;
+        }
+
+        /* Número de entrada */
+        .entry-number {
+            font-size: 12px;
+            color: #666;
+            min-width: 24px;
+        }
+
+        /* Título del proyecto */
+        .entry-title {
+            font-size: 14px;
+            color: #e8e8e8;
+            text-decoration: none;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .entry-title:hover {
+            color: #fff;
+        }
+
+        /* Línea punteada */
+        .dots {
+            flex: 1;
+            border-bottom: 1px dotted #444;
+            margin: 0 12px;
+            position: relative;
+            top: -4px;
+            min-width: 40px;
+        }
+
+        /* Año/fecha */
+        .entry-year {
+            font-size: 12px;
+            color: #666;
+            margin-left: 12px;
+        }
+
+        /* Descripción */
+        .entry-desc {
+            margin-left: 40px;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #777;
+            font-style: italic;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 80px;
+            padding-top: 30px;
+            border-top: 1px solid #333;
+            text-align: center;
+            font-size: 10px;
+            color: #444;
+            letter-spacing: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 60px 24px;
+            }
+
+            .dots {
+                display: none;
+            }
+
+            .entry-year {
+                display: block;
+                margin-left: 40px;
+                margin-top: 4px;
+            }
+
+            .entry-line {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <h1 class="font-effect-emboss">raftxo on GitHub</h1>
-    <ul>
-        <li><a href="./07.SideScrollerMobile/index.html"> 07. Slide Scroller Game with Mobile Support</a><br>(Perrito Saltarín)</li>
-        <li><a href="05shootGame.html">05shootGame.html</a><br>05. Shoot Game (JavaScript tutorial by FrankLab and FreeCodeCamp)</li>
-        <li><a href="sort_goods_js.html">sort_goods_js.html</a><br>Sort Goods Game (web text with emojis)</li>
-        <li><a href="http://www.raftxo.com">raftxo.com</a></li>
-    </ul>
+    <canvas id="canvas-bg"></canvas>
 
+    <div class="container">
+        <header>
+            <h1>The Silent Pulse</h1>
+            <div class="subtitle">Índice de Proyectos</div>
+        </header>
 
-</div>
+        <ul class="index-list">
+            <li class="index-item">
+                <div class="entry-line">
+                    <div class="entry-main">
+                        <span class="entry-number">01</span>
+                        <a href="#" class="entry-title">Slide Scroller Game</a>
+                    </div>
+                    <span class="dots"></span>
+                    <span class="entry-year">2024</span>
+                </div>
+                <div class="entry-desc">Perrito Saltarín — Soporte móvil</div>
+            </li>
+
+            <li class="index-item">
+                <div class="entry-line">
+                    <div class="entry-main">
+                        <span class="entry-number">02</span>
+                        <a href="#" class="entry-title">Shoot Game</a>
+                    </div>
+                    <span class="dots"></span>
+                    <span class="entry-year">2024</span>
+                </div>
+                <div class="entry-desc">Tutorial JavaScript — FrankLab & FreeCodeCamp</div>
+            </li>
+
+            <li class="index-item">
+                <div class="entry-line">
+                    <div class="entry-main">
+                        <span class="entry-number">03</span>
+                        <a href="#" class="entry-title">Sort Goods Game</a>
+                    </div>
+                    <span class="dots"></span>
+                    <span class="entry-year">2024</span>
+                </div>
+                <div class="entry-desc">Web text with emojis</div>
+            </li>
+
+            <li class="index-item">
+                <div class="entry-line">
+                    <div class="entry-main">
+                        <span class="entry-number">04</span>
+                        <a href="#" class="entry-title">raftxo.com</a>
+                    </div>
+                    <span class="dots"></span>
+                    <span class="entry-year">2023</span>
+                </div>
+                <div class="entry-desc">Sitio personal anterior</div>
+            </li>
+        </ul>
+
+        <footer>
+            — 2023-2024 —
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let particles = [];
+        
+        // Configuración de aristas
+        const particleCount = 25;
+        const connectionDistance = 150;
+        const maxConnections = 3;
+        
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3;
+                this.radius = Math.random() * 1.5 + 0.5;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Rebote suave en bordes
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(200, 200, 200, 0.3)';
+                ctx.fill();
+            }
+        }
+        
+        function init() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+        
+        function drawConnections() {
+            for (let i = 0; i < particles.length; i++) {
+                let connections = 0;
+                
+                for (let j = i + 1; j < particles.length; j++) {
+                    if (connections >= maxConnections) break;
+                    
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < connectionDistance) {
+                        const opacity = (1 - distance / connectionDistance) * 0.15;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(180, 180, 180, ${opacity})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                        connections++;
+                    }
+                }
+            }
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            drawConnections();
+            
+            requestAnimationFrame(animate);
+        }
+        
+        window.addEventListener('resize', () => {
+            resize();
+            init();
+        });
+        
+        resize();
+        init();
+        animate();
+    </script>
+
 </body>
 </html>
