@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shelf Sort 3D - Click to Move</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 25px;
+            background: rgba(0,0,0,0.3);
+            gap: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-wrap: wrap;
+        }
+
+        .top-bar h1 {
+            font-size: 1.5em;
+            color: #ffd700;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            white-space: nowrap;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            text-align: center;
+            min-width: 85px;
+        }
+
+        .stat-label {
+            font-size: 0.65em;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .shelves-grid {
+            display: grid;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            margin: 10px 0;
+        }
+
+        .shelf-unit {
+            width: 100%;
+            height: 310px;
+            position: relative;
+            background: linear-gradient(145deg, #8B4513, #654321);
+            border-radius: 15px;
+            padding: 8px 10px;
+            box-shadow: 
+                0 15px 35px rgba(0,0,0,0.5),
+                inset 0 2px 10px rgba(255,255,255,0.1);
+            border: 4px solid #5D4037;
+        }
+
+        .shelf-number {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4e342e;
+            color: rgba(255, 215, 0, 0.4);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 400;
+            font-size: 1em;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+        }
+
+        .shelf-levels {
+            display: flex;
+            flex-direction: column-reverse;
+            height: 100%;
+            gap: 6px;
+            padding-top: 25px;
+        }
+
+        .shelf-level {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            border: 1.5px dashed rgba(255,255,255,0.2);
+            min-height: 52px;
+        }
+
+        .shelf-level.level-0 {
+            background: rgba(255,215,0,0.1);
+            border-color: rgba(255,215,0,0.4);
+            border-style: solid;
+            border-width: 2px;
+            min-height: 58px;
+        }
+
+        .shelf-level.level-1 { opacity: 0.85; min-height: 50px; background: rgba(0,0,0,0.3); }
+        .shelf-level.level-2 { opacity: 0.7; min-height: 46px; background: rgba(0,0,0,0.4); }
+        .shelf-level.level-3 { opacity: 0.55; min-height: 42px; background: rgba(0,0,0,0.5); }
+        .shelf-level.level-4 { opacity: 0.4; min-height: 38px; background: rgba(0,0,0,0.6); }
+
+        .item-slot {
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .shelf-level.level-0 .item-slot {
+            width: 48px;
+            height: 48px;
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .item-slot:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,215,0,0.6);
+        }
+
+        /* Hueco vacío seleccionable */
+        .item-slot.empty-slot {
+            cursor: pointer;
+        }
+
+        .item-slot.empty-slot:hover {
+            background: rgba(0,255,0,0.2);
+            border-color: #00ff00;
+        }
+
+        /* Hueco seleccionado como destino */
+        .item-slot.target-selected {
+            background: rgba(0,255,0,0.4);
+            border-color: #00ff00;
+            border-style: solid;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .item {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            border: 3px solid rgba(255,255,255,0.9);
+            background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+            position: relative;
+        }
+
+        .shelf-level.level-0 .item {
+            width: 44px;
+            height: 44px;
+            font-size: 1.6em;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+        }
+
+        /* Objeto seleccionado */
+        .item.selected {
+            box-shadow: 0 0 30px #ffd700, 0 0 60px rgba(255,215,0,0.5);
+            border-color: #ffd700;
+            transform: scale(1.1);
+            animation: selectedPulse 1s infinite;
+        }
+
+        @keyframes selectedPulse {
+            0%, 100% { box-shadow: 0 0 30px #ffd700; }
+            50% { box-shadow: 0 0 50px #ffd700, 0 0 80px rgba(255,215,0,0.8); }
+        }
+
+        .item.locked {
+            filter: brightness(0.4) grayscale(0.8);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .item:not(.locked):hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        .item.selected:hover {
+            transform: scale(1.1);
+        }
+
+        .item.type-0 { background: linear-gradient(135deg, #ff6b6b, #ee5a24); border-color: #c0392b; }
+        .item.type-1 { background: linear-gradient(135deg, #feca57, #ff9f43); border-color: #e67e22; }
+        .item.type-2 { background: linear-gradient(135deg, #48dbfb, #0abde3); border-color: #0984e3; }
+        .item.type-3 { background: linear-gradient(135deg, #ff9ff3, #f368e0); border-color: #e84393; }
+        .item.type-4 { background: linear-gradient(135deg, #54a0ff, #2e86de); border-color: #273c75; }
+        .item.type-5 { background: linear-gradient(135deg, #5f27cd, #341f97); border-color: #2c2c54; }
+        .item.type-6 { background: linear-gradient(135deg, #00d2d3, #01a3a4); border-color: #006266; }
+        .item.type-7 { background: linear-gradient(135deg, #1dd1a1, #10ac84); border-color: #0b8b72; }
+        .item.type-8 { background: linear-gradient(135deg, #ffc048, #ff9f43); border-color: #e67e22; }
+
+        @keyframes matchPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); box-shadow: 0 0 50px rgba(255,215,0,1); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .item.matched {
+            animation: matchPulse 0.6s ease-out forwards;
+        }
+
+        @keyframes fallDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .item.falling {
+            animation: fallDown 0.5s ease-out;
+        }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            font-size: 1.8em;
+            animation: particleFloat 1s ease-out forwards;
+            z-index: 10000;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+
+        .btn {
+            padding: 8px 18px;
+            font-size: 0.85em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #00b894; color: white; }
+        .btn-warning { background: #fdcb6e; color: #333; }
+        .btn-secondary { background: #95a5a6; color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 40px 60px;
+            border-radius: 20px;
+            border: 4px solid #ffd700;
+            font-size: 1.8em;
+            z-index: 2000;
+            display: none;
+            text-align: center;
+        }
+
+        .message.show { display: block; }
+
+        .rules-container { position: relative; display: inline-block; }
+
+        .status-bar {
+            background: rgba(0,0,0,0.3);
+            padding: 6px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #ffd700;
+            min-height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255,215,0,0.1);
+        }
+
+        @media (max-width: 1100px) {
+            .top-bar { justify-content: center; padding: 15px; }
+            .top-bar h1 { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>📦🧸📦 Shelf Sort 📦🎮📦</h1>
+
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="stat-label">Puntos</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Matches</div>
+                <div class="stat-value" id="matches">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Movs</div>
+                <div class="stat-value" id="moves">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="rules-container">
+                <button class="btn btn-secondary" onclick="game.showRules()">Reglas</button>
+            </div>
+            <button class="btn btn-success" onclick="game.showHint()">Pista</button>
+        </div>
+    </div>
+
+    <div class="status-bar" id="statusBar">
+        Haz click en un objeto de la primera fila para seleccionarlo
+    </div>
+
+    <div class="game-container">
+        <div class="shelves-grid" id="shelvesGrid"></div>
+    </div>
+
+    <div class="message" id="message">
+        <div id="messageText"></div>
+    </div>
+
+    <script>
+        class ShelfSortGame {
+            constructor() {
+                this.numShelves = 14;
+                this.levelsPerShelf = 5;
+                this.slotsPerLevel = 3;
+                
+                this.itemTypes = [
+                    { emoji: '📱', name: 'Móvil' },
+                    { emoji: '📚', name: 'Libro' },
+                    { emoji: '🥤', name: 'Bebida' },
+                    { emoji: '🧸', name: 'Osito' },
+                    { emoji: '🎮', name: 'Gamepad' },
+                    { emoji: '🍎', name: 'Manzana' },
+                    { emoji: '⚽', name: 'Pelota' },
+                    { emoji: '🎸', name: 'Guitarra' },
+                    { emoji: '⌚', name: 'Reloj' }
+                ];
+                
+                this.shelves = [];
+                this.score = 0;
+                this.moves = 0;
+                this.matches = 0;
+                this.combo = 0;
+                this.maxCombo = 0;
+                this.lastMoveHadMatch = false;
+                
+                this.messageTimeout = null;
+                this.audioCtx = null;
+                // Selección actual
+                this.selectedItem = null; // {shelf, slot, item}
+                
+                this.initLevel();
+            }
+
+            initLevel() {
+                // Detectar orientación de pantalla
+                const isHorizontal = window.innerWidth > window.innerHeight;
+                this.numShelves = isHorizontal ? 14 : 9;
+                
+                // Ajustar columnas de la cuadrícula mediante JS
+                const grid = document.getElementById('shelvesGrid');
+                if (isHorizontal) {
+                    grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+                } else {
+                    grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                }
+
+                this.shelves = [];
+                const itemPositions = [];
+                this.maxCombo = 0;
+
+                // 1. Crear la estructura vacía y registrar dónde irían los objetos según el config aleatorio
+                for (let s = 0; s < this.numShelves; s++) {
+                    const shelf = { id: s, levels: Array.from({length: this.levelsPerShelf}, () => []) };
+                    const config = this.generateShelfConfig();
+
+                    config.forEach((levelConfig, levelIdx) => {
+                        levelConfig.forEach((hasItem, slotIdx) => {
+                            if (hasItem) {
+                                itemPositions.push({ shelfIdx: s, levelIdx, slotIdx });
+                            }
+                            shelf.levels[levelIdx].push(null);
+                        });
+                    });
+                    this.shelves.push(shelf);
+                }
+
+                // 2. Calcular cuántos objetos podemos poner para que sean tripletas completas
+                const numItemsToCreate = Math.floor(itemPositions.length / 3) * 3;
+                const items = [];
+                const numTrios = numItemsToCreate / 3;
+
+                // 3. Crear el pool de objetos basado en ese número exacto
+                for (let g = 0; g < numTrios; g++) {
+                    const typeIdx = g % this.itemTypes.length;
+                    for (let i = 0; i < 3; i++) {
+                        items.push({
+                            type: typeIdx,
+                            id: `item_${g}_${i}_${Math.random().toString(36).substr(2, 5)}`
+                        });
+                    }
+                }
+
+                // Mezclar los objetos
+                items.sort(() => Math.random() - 0.5);
+
+                // 4. Llenar solo las posiciones necesarias
+                for (let i = 0; i < numItemsToCreate; i++) {
+                    const pos = itemPositions[i];
+                    this.shelves[pos.shelfIdx].levels[pos.levelIdx][pos.slotIdx] = items[i];
+                }
+
+                this.cancelSelection();
+                this.render();
+                this.updateUI();
+                
+                // Verificar matches iniciales
+                setTimeout(() => this.checkAllMatches(), 500);
+            }
+
+            generateShelfConfig() {
+                const config = [];
+                
+                // Nivel 0: 1-2 objetos
+                const frontItems = 1 + Math.floor(Math.random() * 2);
+                const frontLevel = [false, false, false];
+                const positions = [0, 1, 2].sort(() => Math.random() - 0.5);
+                for (let i = 0; i < frontItems; i++) {
+                    frontLevel[positions[i]] = true;
+                }
+                config.push(frontLevel);
+                
+                // Niveles interiores (1 a 4)
+                for (let l = 1; l < this.levelsPerShelf; l++) {
+                    const level = [false, false, false];
+                    const numItems = 1 + Math.floor(Math.random() * 3);
+                    const pos = [0, 1, 2].sort(() => Math.random() - 0.5);
+                    for (let i = 0; i < numItems; i++) {
+                        level[pos[i]] = true;
+                    }
+                    config.push(level);
+                }
+                
+                return config;
+            }
+
+            render() {
+                const grid = document.getElementById('shelvesGrid');
+                grid.innerHTML = '';
+                
+                this.shelves.forEach((shelf, shelfIdx) => {
+                    const unit = document.createElement('div');
+                    unit.className = 'shelf-unit';
+                    
+                    const number = document.createElement('div');
+                    number.className = 'shelf-number';
+                    number.textContent = shelfIdx + 1;
+                    unit.appendChild(number);
+                    
+                    const levelsContainer = document.createElement('div');
+                    levelsContainer.className = 'shelf-levels';
+                    
+                    for (let levelIdx = 0; levelIdx < this.levelsPerShelf; levelIdx++) {
+                        const levelDiv = document.createElement('div');
+                        levelDiv.className = `shelf-level level-${levelIdx}`;
+                        
+                        const levelData = shelf.levels[levelIdx];
+                        
+                        for (let slotIdx = 0; slotIdx < this.slotsPerLevel; slotIdx++) {
+                            const slot = document.createElement('div');
+                            slot.className = 'item-slot';
+                            slot.dataset.shelf = shelfIdx;
+                            slot.dataset.level = levelIdx;
+                            slot.dataset.slot = slotIdx;
+                            
+                            const item = levelData[slotIdx];
+                            
+                            if (item) {
+                                const itemDiv = this.createItem(item, shelfIdx, levelIdx, slotIdx);
+                                slot.appendChild(itemDiv);
+                            } else if (levelIdx === 0) {
+                                // Hueco vacío en primera fila - clickable
+                                slot.classList.add('empty-slot');
+                                slot.addEventListener('click', () => this.onEmptySlotClick(shelfIdx, slotIdx));
+                            }
+                            
+                            levelDiv.appendChild(slot);
+                        }
+                        
+                        levelsContainer.appendChild(levelDiv);
+                    }
+                    
+                    unit.appendChild(levelsContainer);
+                    grid.appendChild(unit);
+                });
+            }
+
+            createItem(item, shelfIdx, levelIdx, slotIdx) {
+                const div = document.createElement('div');
+                div.className = `item type-${item.type}`;
+                div.textContent = this.itemTypes[item.type].emoji;
+                div.dataset.type = item.type;
+                div.dataset.id = item.id;
+                div.dataset.shelf = shelfIdx;
+                div.dataset.level = levelIdx;
+                div.dataset.slot = slotIdx;
+                
+                // Solo nivel 0 es clickable
+                if (levelIdx === 0) {
+                    div.addEventListener('click', () => this.onItemClick(shelfIdx, slotIdx, item));
+                } else {
+                    div.classList.add('locked');
+                }
+                
+                // Marcar como seleccionado si corresponde
+                if (this.selectedItem && 
+                    this.selectedItem.shelf === shelfIdx && 
+                    this.selectedItem.slot === slotIdx) {
+                    div.classList.add('selected');
+                }
+                
+                return div;
+            }
+
+            initAudio() {
+                if (!this.audioCtx) {
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+            }
+
+            onItemClick(shelfIdx, slotIdx, item) {
+                this.initAudio();
+
+                // Si se hace click en el mismo objeto que ya está seleccionado, se cancela la selección
+                if (this.selectedItem && this.selectedItem.shelf === shelfIdx && this.selectedItem.slot === slotIdx) {
+                    this.playGameSound('DESELECT_ITEM');
+                    this.cancelSelection();
+                    return;
+                }
+
+                // Si ya hay selección, cambiar a nueva selección
+                this.playGameSound('SELECT_ITEM');
+                this.selectedItem = { shelf: shelfIdx, slot: slotIdx, item: item };
+                this.updateStatus(`Seleccionado: ${this.itemTypes[item.type].name} de estantería ${shelfIdx + 1}. Ahora click en un hueco vacío.`);
+                this.render();
+            }
+
+            onEmptySlotClick(targetShelfIdx, targetSlotIdx) {
+                this.initAudio();
+
+                if (!this.selectedItem) {
+                    this.updateStatus('Primero selecciona un objeto de la primera fila');
+                    return;
+                }
+                
+                // No puede mover a la misma posición
+                if (this.selectedItem.shelf === targetShelfIdx && this.selectedItem.slot === targetSlotIdx) {
+                    this.updateStatus('Ya estás ahí. Selecciona otro hueco.');
+                    return;
+                }
+                
+                // Mover el objeto
+                this.moveItem(this.selectedItem.shelf, this.selectedItem.slot, targetShelfIdx, targetSlotIdx);
+            }
+
+            moveItem(fromShelf, fromSlot, toShelf, toSlot) {
+                const item = this.shelves[fromShelf].levels[0][fromSlot];
+                
+                // Verificar que el origen tiene objeto
+                if (!item) {
+                    this.updateStatus('Error: no hay objeto en origen');
+                    return;
+                }
+                
+                // Verificar que destino está vacío
+                if (this.shelves[toShelf].levels[0][toSlot] !== null) {
+                    this.updateStatus('Error: el destino está ocupado');
+                    return;
+                }
+                
+                // Realizar movimiento
+                this.shelves[fromShelf].levels[0][fromSlot] = null;
+                this.shelves[toShelf].levels[0][toSlot] = item;
+                
+                // Si el último movimiento NO produjo match, reiniciamos combo.
+                // Si produjo match, mantenemos el valor para premiar la cadena manual.
+                if (!this.lastMoveHadMatch) {
+                    this.combo = 0;
+                }
+                this.lastMoveHadMatch = false; // Resetear para el movimiento actual
+
+                this.playGameSound('PLACE_ITEM');
+                this.moves++;
+                this.cancelSelection();
+                
+                // Verificar cascada en origen
+                this.checkAndCascade(fromShelf);
+                
+                // Verificar match en destino
+                this.checkShelfMatch(toShelf);
+                
+                this.render();
+                this.updateUI();
+                this.checkWin();
+            }
+
+            cancelSelection() {
+                this.selectedItem = null;
+                this.updateStatus('Haz click en un objeto de la primera fila para seleccionarlo');
+                this.render();
+            }
+
+            checkAndCascade(shelfIdx) {
+                const shelf = this.shelves[shelfIdx];
+                const level0Empty = shelf.levels[0].every(item => item === null);
+                
+                if (level0Empty) {
+                    let hasItemsAbove = false;
+                    for (let l = 1; l < this.levelsPerShelf; l++) {
+                        if (shelf.levels[l].some(item => item !== null)) {
+                            hasItemsAbove = true;
+                            break;
+                        }
+                    }
+                    
+                    if (hasItemsAbove) {
+                        // Todo cae un nivel
+                        for (let level = 1; level < this.levelsPerShelf; level++) {
+                            for (let slot = 0; slot < this.slotsPerLevel; slot++) {
+                                if (shelf.levels[level][slot] !== null) {
+                                    shelf.levels[level - 1][slot] = shelf.levels[level][slot];
+                                    shelf.levels[level][slot] = null;
+                                }
+                            }
+                        }
+                        
+                        this.playGameSound('CASCADE_SLIDE');
+                        this.updateStatus('⬇️ Todo cae un nivel en estantería ' + (shelfIdx + 1));
+                        
+                        // Verificar match después de la caída
+                        setTimeout(() => {
+                            this.checkShelfMatch(shelfIdx);
+                            this.render();
+                            this.updateUI();
+                        }, 300);
+                    }
+                }
+            }
+
+            checkShelfMatch(shelfIdx) {
+                const shelf = this.shelves[shelfIdx];
+                const level0 = shelf.levels[0];
+                
+                // Verificar si hay 3 objetos del mismo tipo
+                const typeCount = {};
+                const typePositions = {};
+                
+                level0.forEach((item, slot) => {
+                    if (item) {
+                        if (!typeCount[item.type]) {
+                            typeCount[item.type] = 0;
+                            typePositions[item.type] = [];
+                        }
+                        typeCount[item.type]++;
+                        typePositions[item.type].push(slot);
+                    }
+                });
+                
+                Object.keys(typeCount).forEach(type => {
+                    if (typeCount[type] === 3) {
+                        this.combo++;
+                        if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+                        this.lastMoveHadMatch = true;
+                        // Match encontrado
+                        typePositions[type].forEach(slotIdx => {
+                            this.createParticles(shelfIdx, 0, slotIdx);
+                            shelf.levels[0][slotIdx] = null;
+                        });
+                        
+                        this.playGameSound('MATCH_FANFARE', this.combo);
+                        this.score += 300 * this.combo;
+                        this.matches++;
+                        const bonusText = this.combo > 1 ? ` (x${this.combo} Combo!)` : "";
+                        
+                        if (this.combo > 1) {
+                            this.showMessage(`🔥 BONUS x${this.combo} !!! 🔥`, 1000);
+                        }
+                        
+                        this.updateStatus(`✨ ¡MATCH 3 de ${this.itemTypes[type].name}! +${300 * this.combo} pts${bonusText}`);
+                        
+                        // Después del match, hacer cascada
+                        setTimeout(() => {
+                            this.checkAndCascade(shelfIdx);
+                            this.render();
+                            this.updateUI();
+                        }, 600);
+                    }
+                });
+            }
+
+            checkAllMatches() {
+                let foundMatch = false;
+                this.combo = 0; // Al inicio del nivel o auto-check completo, empezamos de 0
+                this.lastMoveHadMatch = false;
+                
+                for (let s = 0; s < this.numShelves; s++) {
+                    const shelf = this.shelves[s];
+                    const level0 = shelf.levels[0];
+                    
+                    const typeCount = {};
+                    const typePositions = {};
+                    
+                    level0.forEach((item, slot) => {
+                        if (item) {
+                            if (!typeCount[item.type]) {
+                                typeCount[item.type] = 0;
+                                typePositions[item.type] = [];
+                            }
+                            typeCount[item.type]++;
+                            typePositions[item.type].push(slot);
+                        }
+                    });
+                    
+                    Object.keys(typeCount).forEach(type => {
+                        if (typeCount[type] === 3) {
+                            foundMatch = true;
+                            this.lastMoveHadMatch = true;
+                            this.combo++;
+                            if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+                            typePositions[type].forEach(slotIdx => {
+                                this.createParticles(s, 0, slotIdx);
+                                shelf.levels[0][slotIdx] = null;
+                            });
+                            
+                            this.score += 300 * this.combo;
+                            this.matches++;
+                            
+                            if (this.combo > 1) {
+                                this.showMessage(`🔥 BONUS x${this.combo} !!! 🔥`, 1000);
+                            }
+
+                            this.playGameSound('MATCH_FANFARE', this.combo);
+                            setTimeout(() => {
+                                this.checkAndCascade(s);
+                                this.render();
+                                this.updateUI();
+                            }, 600);
+                        }
+                    });
+                }
+                
+                if (foundMatch) {
+                    this.updateStatus('✨ ¡Matches automáticos al inicio!');
+                }
+            }
+
+            playGameSound(type, data) {
+                if (!this.audioCtx) return;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                const now = this.audioCtx.currentTime;
+
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                const pitchFactor = data ? 1 + (data - 1) * 0.15 : 1;
+
+                switch(type) {
+                    case 'SELECT_ITEM': // Chirp agudo
+                        osc.frequency.setValueAtTime(800, now);
+                        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                        osc.start(); osc.stop(now + 0.1);
+                        break;
+                    case 'DESELECT_ITEM': // Thud bajo
+                        osc.frequency.setValueAtTime(300, now);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                        osc.start(); osc.stop(now + 0.1);
+                        break;
+                    case 'PLACE_ITEM': // Pop de madera
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(400, now);
+                        osc.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.linearRampToValueAtTime(0, now + 0.15);
+                        osc.start(); osc.stop(now + 0.15);
+                        break;
+                    case 'MATCH_FANFARE': // Triada ascendente
+                        [440, 554, 659].forEach((f, i) => {
+                            const o = this.audioCtx.createOscillator();
+                            const g = this.audioCtx.createGain();
+                            o.connect(g); g.connect(this.audioCtx.destination);
+                            o.frequency.setValueAtTime(f * pitchFactor, now + i*0.1);
+                            g.gain.setValueAtTime(0.1, now + i*0.1);
+                            g.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.3);
+                            o.start(now + i*0.1); o.stop(now + i*0.1 + 0.3);
+                        });
+                        break;
+                    case 'CASCADE_SLIDE': // Deslizamiento rápido
+                        const bufferSize = this.audioCtx.sampleRate * 0.1;
+                        const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+                        const noiseData = buffer.getChannelData(0);
+                        for (let j = 0; j < bufferSize; j++) noiseData[j] = Math.random() * 2 - 1;
+                        for (let i = 0; i < 3; i++) {
+                            const noise = this.audioCtx.createBufferSource();
+                            noise.buffer = buffer;
+                            const nGain = this.audioCtx.createGain();
+                            nGain.connect(this.audioCtx.destination);
+                            noise.connect(nGain);
+                            nGain.gain.setValueAtTime(0.04, now + i * 0.1);
+                            nGain.gain.linearRampToValueAtTime(0, now + i * 0.1 + 0.08);
+                            noise.start(now + i * 0.1);
+                        }
+                        break;
+                }
+            }
+
+            createParticles(shelfIdx, levelIdx, slotIdx) {
+                const slot = document.querySelector(
+                    `.item-slot[data-shelf="${shelfIdx}"][data-level="${levelIdx}"][data-slot="${slotIdx}"]`
+                );
+                if (!slot) return;
+                
+                const rect = slot.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                for (let i = 0; i < 10; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.textContent = ['✨', '⭐', '💫', '🌟', '💥'][Math.floor(Math.random() * 5)];
+                    particle.style.left = centerX + 'px';
+                    particle.style.top = centerY + 'px';
+                    particle.style.setProperty('--tx', (Math.random() - 0.5) * 150 + 'px');
+                    particle.style.setProperty('--ty', (Math.random() - 0.5) * 150 + 'px');
+                    document.body.appendChild(particle);
+                    setTimeout(() => particle.remove(), 1000);
+                }
+            }
+
+            showHint() {
+                // Buscar estantería con 2 del mismo tipo
+                for (let s = 0; s < this.numShelves; s++) {
+                    const shelf = this.shelves[s];
+                    const level0 = shelf.levels[0];
+                    
+                    const typeCount = {};
+                    const positions = {};
+                    
+                    level0.forEach((item, slot) => {
+                        if (item) {
+                            if (!typeCount[item.type]) {
+                                typeCount[item.type] = 0;
+                                positions[item.type] = [];
+                            }
+                            typeCount[item.type]++;
+                            positions[item.type].push(slot);
+                        }
+                    });
+                    
+                    for (let type in typeCount) {
+                        if (typeCount[type] === 2) {
+                            // Buscar tercer objeto en otra estantería
+                            for (let otherShelf = 0; otherShelf < this.numShelves; otherShelf++) {
+                                if (otherShelf === s) continue;
+                                
+                                const otherLevel0 = this.shelves[otherShelf].levels[0];
+                                
+                                for (let slot = 0; slot < 3; slot++) {
+                                    const item = otherLevel0[slot];
+                                    if (item && item.type == type) {
+                                        // Encontrar hueco en estantería objetivo
+                                        const emptySlot = level0.indexOf(null);
+                                        if (emptySlot !== -1) {
+                                            this.updateStatus(`💡 Pista: Mueve ${this.itemTypes[type].name} de estantería ${otherShelf + 1} a estantería ${s + 1}`);
+                                            
+                                            // Resaltar visualmente
+                                            setTimeout(() => {
+                                                const from = document.querySelector(
+                                                    `.item[data-shelf="${otherShelf}"][data-level="0"][data-slot="${slot}"]`
+                                                );
+                                                const to = document.querySelector(
+                                                    `.item-slot[data-shelf="${s}"][data-level="0"][data-slot="${emptySlot}"]`
+                                                );
+                                                
+                                                if (from && to) {
+                                                    from.style.boxShadow = '0 0 30px #00d2d3';
+                                                    to.style.borderColor = '#00d2d3';
+                                                    to.style.background = 'rgba(0,210,211,0.3)';
+                                                    
+                                                    setTimeout(() => {
+                                                        from.style.boxShadow = '';
+                                                        to.style.borderColor = '';
+                                                        to.style.background = '';
+                                                    }, 3000);
+                                                }
+                                            }, 100);
+                                            
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                this.updateStatus('🤔 No hay una pista clara en este momento.');
+            }
+
+            showRules() {
+                const rulesHtml = `
+                    <div style="text-align: left; font-size: 0.7em;">
+                        <h3 style="color: #ffd700; margin-bottom: 15px; text-align: center;">🎮 CÓMO JUGAR</h3>
+                        <p><strong>1.</strong> Click en objeto de <strong>primera fila</strong> para seleccionar.</p>
+                        <p><strong>2.</strong> Click en <strong>hueco vacío</strong> (fila frontal) para mover.</p>
+                        <p><strong>3.</strong> Juntar <strong>3 iguales</strong> en una fila para eliminarlos.</p>
+                        <p><strong>4.</strong> Al vaciar la fila frontal, el fondo <strong>avanza un nivel</strong>.</p>
+                    </div>
+                `;
+                this.showMessage(rulesHtml, 4000);
+            }
+
+            checkWin() {
+                let totalItems = 0;
+                this.shelves.forEach(s => {
+                    s.levels.forEach(level => {
+                        level.forEach(item => {
+                            if (item) totalItems++;
+                        });
+                    });
+                });
+                
+                if (totalItems === 0) {
+                    this.updateStatus('🏆 ¡VICTORIA! 🏆');
+                    
+                    // VICTORIA_TACHAN: Acorde de C Mayor glorioso
+                    [261, 329, 392, 523].forEach(f => {
+                        const o = this.audioCtx.createOscillator();
+                        const g = this.audioCtx.createGain();
+                        o.type = 'sine';
+                        o.connect(g); g.connect(this.audioCtx.destination);
+                        o.frequency.setValueAtTime(f, this.audioCtx.currentTime);
+                        g.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                        g.gain.linearRampToValueAtTime(0.1, this.audioCtx.currentTime + 0.1);
+                        g.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 1.5);
+                        o.start(); o.stop(this.audioCtx.currentTime + 1.5);
+                    });
+
+                    const victoryMsg = `
+                        🏆 ¡VICTORIA! 🏆<br>
+                        <span style="font-size: 0.6em; color: #ffd700; opacity: 0.8;">
+                            Combo Máximo: x${this.maxCombo}
+                        </span>`;
+                    this.showMessage(victoryMsg, 5000);
+                    setTimeout(() => {
+                        this.score += 1000;
+                        this.initLevel();
+                    }, 2000);
+                }
+            }
+
+            updateStatus(text) {
+                document.getElementById('statusBar').textContent = text;
+            }
+
+            showMessage(text, duration = 3000) {
+                const msg = document.getElementById('message');
+                document.getElementById('messageText').innerHTML = text;
+                msg.classList.add('show');
+                
+                if (this.messageTimeout) clearTimeout(this.messageTimeout);
+                this.messageTimeout = setTimeout(() => msg.classList.remove('show'), duration);
+            }
+
+            updateUI() {
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('matches').textContent = this.matches;
+                document.getElementById('moves').textContent = this.moves;
+            }
+        }
+
+        const game = new ShelfSortGame();
+    </script>
+</body>
+</html>
