@@ -194,7 +194,7 @@
         </footer>
     </div>
 
-    <script>
+<script>
 async function cargarRepos() {
     const respuesta = await fetch("https://api.github.com/users/raftxo/repos");
     const repos = await respuesta.json();
@@ -208,8 +208,25 @@ async function cargarRepos() {
         const año = new Date(repo.created_at).getFullYear();
         const descripcion = repo.description || "Proyecto sin descripción";
 
-        // URL de GitHub Pages
-        const pagina = `https://raftxo.github.io/${repo.name}/`;
+        // 1. Si el repo tiene homepage configurado
+        let urlWeb = repo.homepage && repo.homepage.trim() !== "" 
+            ? repo.homepage 
+            : null;
+
+        // 2. Si no tiene homepage, intentamos GitHub Pages estándar
+        if (!urlWeb) {
+            urlWeb = `https://raftxo.github.io/${repo.name}/`;
+        }
+
+        // 3. Comprobación rápida: si la URL parece válida
+        // (si quieres, podemos hacer un fetch HEAD para verificar)
+        const tieneWeb = urlWeb !== null;
+
+        // 4. Si no tiene web, usar la URL del repo
+        const urlFinal = tieneWeb ? urlWeb : repo.html_url;
+
+        // 5. Icono según si tiene web o no
+        const icono = tieneWeb ? "🌐" : "📦";
 
         const li = document.createElement("li");
         li.className = "index-item";
@@ -218,8 +235,8 @@ async function cargarRepos() {
             <div class="entry-line">
                 <div class="entry-main">
                     <span class="entry-number">${numero}</span>
-                    <a href="${pagina}" class="entry-title" target="_blank">
-                        ${repo.name}
+                    <a href="${urlFinal}" class="entry-title" target="_blank">
+                        ${icono} ${repo.name}
                     </a>
                 </div>
                 <span class="dots"></span>
@@ -234,6 +251,7 @@ async function cargarRepos() {
 
 cargarRepos();
 </script>
+
 
 
 
