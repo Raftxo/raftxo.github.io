@@ -183,63 +183,56 @@
     <div class="container">
         <header>
             <h1>The Silent Pulse</h1>
-            <div class="subtitle">Índice de Proyectos</div>
+            <div class="subtitle">Índice de Proyectos de Raftxo en GitHub</div>
         </header>
 
-        <ul class="index-list">
-            <li class="index-item">
-                <div class="entry-line">
-                    <div class="entry-main">
-                        <span class="entry-number">01</span>
-                        <a href="#" class="entry-title">Slide Scroller Game</a>
-                    </div>
-                    <span class="dots"></span>
-                    <span class="entry-year">2024</span>
-                </div>
-                <div class="entry-desc">Perrito Saltarín — Soporte móvil</div>
-            </li>
-
-            <li class="index-item">
-                <div class="entry-line">
-                    <div class="entry-main">
-                        <span class="entry-number">02</span>
-                        <a href="#" class="entry-title">Shoot Game</a>
-                    </div>
-                    <span class="dots"></span>
-                    <span class="entry-year">2024</span>
-                </div>
-                <div class="entry-desc">Tutorial JavaScript — FrankLab & FreeCodeCamp</div>
-            </li>
-
-            <li class="index-item">
-                <div class="entry-line">
-                    <div class="entry-main">
-                        <span class="entry-number">03</span>
-                        <a href="#" class="entry-title">Sort Goods Game</a>
-                    </div>
-                    <span class="dots"></span>
-                    <span class="entry-year">2024</span>
-                </div>
-                <div class="entry-desc">Web text with emojis</div>
-            </li>
-
-            <li class="index-item">
-                <div class="entry-line">
-                    <div class="entry-main">
-                        <span class="entry-number">04</span>
-                        <a href="#" class="entry-title">raftxo.com</a>
-                    </div>
-                    <span class="dots"></span>
-                    <span class="entry-year">2023</span>
-                </div>
-                <div class="entry-desc">Sitio personal anterior</div>
-            </li>
-        </ul>
+        // intentaremos cargar las repos desde GitHub con javascript y API
+        <ul class="index-list" id="lista-proyectos"></ul>
 
         <footer>
             — 2023-2024 —
         </footer>
     </div>
+
+    <script>
+async function cargarRepos() {
+    const respuesta = await fetch("https://api.github.com/users/raftxo/repos");
+    const repos = await respuesta.json();
+
+    // Ordenar por fecha de actualización (más recientes primero)
+    repos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+
+    const ul = document.getElementById("lista-proyectos");
+
+    repos.forEach((repo, index) => {
+        const numero = String(index + 1).padStart(2, "0");
+        const año = new Date(repo.created_at).getFullYear();
+        const descripcion = repo.description || "Proyecto sin descripción";
+
+        const li = document.createElement("li");
+        li.className = "index-item";
+
+        li.innerHTML = `
+            <div class="entry-line">
+                <div class="entry-main">
+                    <span class="entry-number">${numero}</span>
+                    <a href="${repo.html_url}" class="entry-title" target="_blank">
+                        ${repo.name}
+                    </a>
+                </div>
+                <span class="dots"></span>
+                <span class="entry-year">${año}</span>
+            </div>
+            <div class="entry-desc">${descripcion}</div>
+        `;
+
+        ul.appendChild(li);
+    });
+}
+
+cargarRepos();
+</script>
+
 
     <script>
         const canvas = document.getElementById('canvas-bg');
