@@ -186,7 +186,7 @@
             <div class="subtitle">Índice de Proyectos de Raftxo en GitHub</div>
         </header>
 
-        // intentaremos cargar las repos desde GitHub con javascript y API
+        <!-- intentaremos cargar las repos desde GitHub con javascript y API -->
         <ul class="index-list" id="lista-proyectos"></ul>
 
         <footer>
@@ -199,7 +199,6 @@ async function cargarRepos() {
     const respuesta = await fetch("https://api.github.com/users/raftxo/repos");
     const repos = await respuesta.json();
 
-    // Ordenar por fecha de actualización (más recientes primero)
     repos.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
 
     const ul = document.getElementById("lista-proyectos");
@@ -209,6 +208,9 @@ async function cargarRepos() {
         const año = new Date(repo.created_at).getFullYear();
         const descripcion = repo.description || "Proyecto sin descripción";
 
+        // URL de GitHub Pages
+        const pagina = `https://raftxo.github.io/${repo.name}/`;
+
         const li = document.createElement("li");
         li.className = "index-item";
 
@@ -216,7 +218,7 @@ async function cargarRepos() {
             <div class="entry-line">
                 <div class="entry-main">
                     <span class="entry-number">${numero}</span>
-                    <a href="${repo.html_url}" class="entry-title" target="_blank">
+                    <a href="${pagina}" class="entry-title" target="_blank">
                         ${repo.name}
                     </a>
                 </div>
@@ -232,6 +234,7 @@ async function cargarRepos() {
 
 cargarRepos();
 </script>
+
 
 
     <script>
